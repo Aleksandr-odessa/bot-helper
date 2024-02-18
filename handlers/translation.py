@@ -12,11 +12,11 @@ import logging
 router = Router()
 period_agency = []
 
-file_log1 = logging.FileHandler("bot.log", "w")
-console_out = logging.StreamHandler()
-logging.basicConfig(handlers=(file_log1, console_out),
-                    format='%(asctime)s, %(levelname)s, , %(message)s', datefmt='%d-%b-%y %H:%M:%S',
-                    level=logging.DEBUG)
+# file_log1 = logging.FileHandler("bot.log", "w")
+# console_out = logging.StreamHandler()
+# logging.basicConfig(handlers=(file_log1, console_out),
+#                     format='%(asctime)s, %(levelname)s, , %(message)s', datefmt='%d-%b-%y %H:%M:%S',
+#                     level=logging.DEBUG)
 
 
 @router.message(Month.choosing_month, F.text.in_(months))
@@ -28,7 +28,8 @@ async def month_choosen(message: Message, state: FSMContext):
         await state.clear()
         period_agency.clear()
     except ValueError:
-        logging.info('error reqest summ month')
+        ...
+        # logging.info('error reqest summ month')
 
 
 @router.message(Period.choosing_period)
@@ -44,14 +45,15 @@ async def period_chosen(message: Message, state: FSMContext):
 @router.message(Period.choosing_office, F.text.in_(names))
 async def office_chosen(message: Message, state: FSMContext):
     period_agency.append(message.text)
-    print(period_agency)
+    # print(period_agency)
     try:
         summa = request_summ(period_agency)
         await message.answer(text=summa, reply_markup=button_periods())
         await state.clear()
         period_agency.clear()
     except ValueError:
-        logging.info('error reqest summ periods and office')
+        ...
+        # logging.info('error reqest summ periods and office')
 
 
 # Указать месяц или период и агенство
