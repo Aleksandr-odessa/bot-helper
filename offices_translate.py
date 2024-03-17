@@ -1,14 +1,16 @@
 import datetime
 import calendar
+import os
+
 from imap_tools import MailBox, AND
-from config import mail_and_name, pass_mail, username_mail, server_imap, name_and_mail, year
+from config import mail_and_name, name_and_mail, year
 import re
 import logging
 from time import time
 
-IMAP: str = server_imap
-USERNAME: str = username_mail
-MAIL_PASSWORD: str = pass_mail
+IMAP: str = os.environ['SERVER_IMAP']
+MAIL_USERNAME: str = os.environ['USERNAME_MAIL']
+MAIL_PASSWORD: str = os.environ['PASS_MAIL']
 
 list_data = []
 # file_log = logging.FileHandler("mailLog.log", "w")
@@ -30,19 +32,17 @@ def select_month_day(data: str) -> tuple:
 
 
 def request_mail(data: list) -> list:
-
     # data = [translate office, date]
     message_list = []
     month_day: tuple = select_month_day(data[0])
     month: int = month_day[1]
-    day_start: int = month_day[0]
-    day_finish: tuple = calendar.monthrange(year, month)
-    # creating a list of days
-    list_of_days: list = [datetime.date(year, month, i) for i in range(day_start, day_finish[1] + 1)]
+    day_finish: int = calendar.monthrange(year, month)[1]
+    # # creating a list of days
+    list_of_days: list = [datetime.date(year, month, i) for i in range(month_day[0], day_finish + 1)]
     len_data: int = len(data)
     # creating to connect to server
     start_time = time()
-    with MailBox(server_imap).login(username_mail, pass_mail) as mailbox:
+    with MailBox(IMAP).login(MAIL_USERNAME, MAIL_PASSWORD) as mailbox:
         # select the folder
         mailbox.folder.set('Отправленные')
         if len_data >= 2:
@@ -60,18 +60,18 @@ def request_mail(data: list) -> list:
     return message_list
 
 
-def request_mail2(list_of_days: list, data:list) -> list:
+def request_mail2(list_of_days: list, data: list) -> list:
     len_data: int = len(data)
     start_time = time()
     if len_data < 2:
-        with MailBox(server_imap).login(username_mail, pass_mail) as mailbox:
+        with MailBox(IMAP).login(MAIL_USERNAME, MAIL_PASSWORD) as mailbox:
             # select the folder
             mailbox.folder.set('Отправленные')
             for day in list_of_days:
                 message_list: list = [[msg.uid, str(msg.date), msg.to, msg.text] for msg in mailbox.fetch(AND(date=day))]
     else:
         mail = name_and_mail.get(data[1])
-        with MailBox(server_imap).login(username_mail, pass_mail) as mailbox:
+        with MailBox(IMAP).login(MAIL_USERNAME, MAIL_PASSWORD) as mailbox:
         # select the folder
             mailbox.folder.set('Отправленные')
             for day in list_of_days:
@@ -82,11 +82,11 @@ def request_mail2(list_of_days: list, data:list) -> list:
     return message_list
 
 def create_list_of_days(data:list) -> list:
-    month_day: tuple = select_month_day(data[0])
+    month_day: int = select_month_day(data[0])[0]
     month: int = month_day[1]
-    day_finish: tuple = calendar.monthrange(year, month)
+    day_finish: int = calendar.monthrange(year, month)[1]+1
     # creating a list of days
-    list_of_days: list = [datetime.date(year, month, i) for i in range(month_day[0], day_finish[1] + 1)]
+    list_of_days: list = [datetime.date(year, month, i) for i in range(month_day, day_finish)]
     return list_of_days
 
 
@@ -103,7 +103,8 @@ def get_money(list_message: list) -> list:
     return cleared_list
 
 
-def request_summ(data) -> str:
+def request_summ(data: str) -> str:
+    start_time = time()
     list_message: list = request_mail(data)
     messages: list = get_money(list_message)
     set_email: list = [i[2] for i in messages]
@@ -112,6 +113,9 @@ def request_summ(data) -> str:
         temp: list = [int(mes[3]) for mes in messages if email in mes]
         string: str = "  ".join(["суммы:", str(temp), "общая сумма", str(sum(temp))])
         dict_of_messengers[mail_and_name.get(email)] = string
+    finish_time = time()
+    res_time = finish_time - start_time
+    print(res_time)
     return str(dict_of_messengers)
 
 

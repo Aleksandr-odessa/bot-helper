@@ -1,17 +1,16 @@
-from offices_translate import request_mail2, request_mail, create_list_of_days
+from offices_translate2 import GetCountForMonth, GetCountForPeriod
+from offices_translate import request_summ
 import time
+import datetime
 
-days = create_list_of_days(["1"])
-start_time = time.time()
-mail: list = request_mail(["1"])
-end_time = time.time()
-result_time = end_time-start_time
-# print (mail)
-print(result_time)
-start_time2 = time.time()
-# test_list = [day for day in range(173126, 174167)]
-mail2: list = request_mail2(days,["1"])
-end_time2 = time.time()
-result_time2 = end_time2-start_time2
-# # print (mail2)
-print(result_time2)
+one_month = GetCountForMonth('2')
+# day_month = GetCountForPeriod('01.15')
+
+jan = one_month.create_list_of_days()
+# # test_jan = request_summ('1')
+# # assert len(jan) == 52
+# print(f'jan={jan}')
+# print(len(jan))
+# # print(f'test_jan={test_jan}')
+# january15 =
+print(jan)
